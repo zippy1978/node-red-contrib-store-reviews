@@ -1,0 +1,15 @@
+{
+  "appstore": {
+    "label": {
+      "30minutes": "30 minutes",
+      "1hour": "1 hour",
+      "4hours": "4 hours",
+      "12hours": "12 hours",
+      "24hours": "24 hours",
+      "language": "Language",
+      "name": "Name",
+      "pollinginterval": "Polling",
+      "appid": "App ID"
+    }
+  }
+}

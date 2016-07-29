@@ -1,0 +1,67 @@
+<script type="text/javascript">
+    RED.nodes.registerType('appstore',{
+        category: 'input',
+        color: '#a6bbcf',
+        icon: 'apple.png',
+        defaults: {
+            name: {value: ""},
+            appid: {value: "", required: true, validate: RED.validators.regex(/[0-9]+/)},
+            country: {value: "", required: true, validate: RED.validators.regex(/^[a-z]{2}$/)},
+            pollinginterval: {value: 30, required: true}
+        },
+        inputs:0,
+        outputs:1,
+        label: function() {
+            return this.name||'appstore (' + this.appid + ' - ' + this.country + ')';
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="appstore">
+
+  <div class="form-row">
+    <label for="node-input-appid"><i class="fa fa-dot-circle-o"></i> <span data-i18n="appstore.label.appid"></span></label>
+    <input type="text" id="node-input-appid">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-country"><i class="fa fa-globe"></i> <span data-i18n="appstore.label.country"></span></label>
+    <input type="text" id="node-input-country">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> <span data-i18n="appstore.label.pollinginterval"></span></label>
+    <select type="text" id="node-input-pollinginterval">
+        <option value="30" data-i18n="appstore.label.30minutes"></option>
+        <option value="60" data-i18n="appstore.label.1hour"></option>
+        <option value="240" data-i18n="appstore.label.4hours"></option>
+        <option value="720" data-i18n="appstore.label.12hours"></option>
+        <option value="1440" data-i18n="appstore.label.24hours"></option>
+    </select>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-name"><i class="icon-tag"></i> <span data-i18n="appstore.label.name"></span></label>
+    <input type="text" id="node-input-name">
+  </div>
+
+</script>
+
+<script type="text/x-red" data-help-name="appstore">
+    <p>A node for collecting Apple App Store reviews.</p>
+    <p>Sends a new message for each new review found for a given App in a given country.</p>
+    <p>Review data is stored in <code>msg.review</code>.</p>
+    <p>Content of <code>msg.review</code> is:</p>
+    <ul>
+      <li><code>msg.review.id</code>: review identifier</li>
+      <li><code>msg.review.app</code>: application information. Object containing <code>id</code>, <code>title</code>, <code>icon</code> and <code>url</code></li>
+      <li><code>msg.review.rate</code>: review rating</li>
+      <li><code>msg.review.author</code>: review author</li>
+      <li><code>msg.review.version</code>: application version reviewed</li>
+      <li><code>msg.review.title</code>: review title</li>
+      <li><code>msg.review.comment</code>: review comment</li>
+      <li><code>msg.review.country</code>: review country (as ISO Alpha 2)</li>
+      <li><code>msg.review.vote</code>: review vote</li>
+
+    </ul>
+</script>

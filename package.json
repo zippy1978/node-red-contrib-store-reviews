@@ -1,0 +1,25 @@
+{
+  "name": "node-red-contrib-store-reviews",
+  "version": "0.1.0",
+  "description": "A set of input nodes to collect application store reviews",
+  "node-red": {
+    "nodes": {
+        "appstore": "appstore/appstore.js",
+        "googleplay": "googleplay/googleplay.js"
+    }
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "application",
+    "store",
+    "reviews",
+    "nodes",
+    "node-red",
+    "appstore",
+    "googleplay"
+  ],
+  "author": "zippy1978",
+  "license": "ISC"
+}
