@@ -19,7 +19,8 @@ module.exports = function(RED) {
         storeScraper.reviews({
           appId: node.appid,
           lang: node.language,
-          page: 0
+          page: 0,
+          sort: storeScraper.sort.NEWEST
         }).then(function(reviews) {
 
           // Store first (latest) review URL
@@ -27,16 +28,20 @@ module.exports = function(RED) {
           if (reviews.length > 0) {
             startReviewUrl = reviews[0].url;
           }
+          node.log('Start review URL: ' + startReviewUrl);
 
           // Send message for each new review
-          var latestReviewReached = (context.get('latestReviewUrl') === undefined);
-          var i = 0;
           var latestReviewUrl = context.get('latestReviewUrl');
+          node.log('Latest review URL: ' + latestReviewUrl);
+          var latestReviewReached = (latestReviewUrl === undefined);
+          var i = 0;
+          var newReviewsCount = 0;
           while (!latestReviewReached && i < reviews.length) {
             var review = reviews[i];
 
             if (latestReviewUrl === review.url) {
-                latestReviewReached = true;
+              node.log('Latest review reached !');
+              latestReviewReached = true;
             } else {
               // Send new review
               var msg = {payload: null};
@@ -50,13 +55,17 @@ module.exports = function(RED) {
                 url: appInfo.url
               };
               node.send(msg);
+              newReviewsCount++;
             }
             i++;
           }
 
-          // Store last review UL processed
+          node.log('Found ' + newReviewsCount + ' new reviews');
+
+          // Store last review URL processed
           if (startReviewUrl !== null) {
             context.set('latestReviewUrl',startReviewUrl);
+            node.log('Last review is [' + reviews[0].title + '] - ' + reviews[0].date);
           }
 
         }).catch(function(e) {
@@ -75,7 +84,7 @@ module.exports = function(RED) {
         // Interval to poll the reviews
         interval = setInterval(function() {
           retrieveReviews();
-        }, parseInt(node.pollinginterval) * 60 * 1000);
+        }, (node.pollinginterval) * 60 * 1000);
         // Initial retrieval
         retrieveReviews();
 

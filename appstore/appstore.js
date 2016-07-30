@@ -3,12 +3,16 @@ module.exports = function(RED) {
 
   var storeScraper = require('app-store-scraper');
   var AppStoreReviewsModule = require('app-store-reviews');
+  var Q = require('q');
   var appStoreReviews = new AppStoreReviewsModule();
+
 
   function AppStoreNode(config) {
 
       RED.nodes.createNode(this,config);
       this.appid = config.appid;
+      // Parse multiple app ids
+      this.appids = this.appid.split(' ');
       this.country = config.country;
       this.pollinginterval = config.pollinginterval;
       var context = this.context();
@@ -18,13 +22,15 @@ module.exports = function(RED) {
       appStoreReviews.on('review', function(review) {
 
         if (context.get('latestReviewId') === undefined) {
+          // First review : will be used as start value
           context.set('latestReviewId',review.id);
         } else if (review.id > context.get('latestReviewId')) {
+          // New review
           context.set('latestReviewId',review.id);
           var msg = {payload: null};
           msg.review = review;
           // Add extra application information into the review
-          var appInfo = context.get('appInfo');
+          var appInfo = context.get('appsInfo')[review.app];
           msg.review.app = {
             id: appInfo.id,
             title: appInfo.title,
@@ -38,17 +44,35 @@ module.exports = function(RED) {
 
       var retrieveReviews = function() {
 
-        node.log('Retrieving reviews');
+        node.appids.forEach(function(appid) {
+          node.log('Retrieving reviews for App ' + appid);
+          appStoreReviews.getReviews(appid, node.country, 1);
+        });
+      };
 
-        appStoreReviews.getReviews(node.appid, node.country, 1);
+      var retrieveAppInfo = function() {
+
+        var promises = [];
+        node.appids.forEach(function(appid) {
+          promises.push(storeScraper.app({id: appid}))
+        });
+
+        return Q.all(promises).
+        then(function(results) {
+          var appsInfo = {};
+          context.set('appsInfo',appsInfo);
+          // Store app info of each app in the node context
+          results.forEach(function(appInfo) {
+            appsInfo[appInfo.id] = appInfo;
+          });
+        });
+
       };
 
       // Retrieve app information and setup polling
       var interval = null;
-      storeScraper.app({id: node.appid}).
+      retrieveAppInfo().
       then(function(appInfo) {
-
-        context.set('appInfo',appInfo);
 
         // Interval to poll the reviews
         interval = setInterval(function() {
@@ -56,8 +80,6 @@ module.exports = function(RED) {
         }, parseInt(node.pollinginterval) * 60 * 1000);
         // Initial retrieval
         retrieveReviews();
-
-        node.log('Running (' + appInfo.title + ')');
 
       }).catch(function(e) {
         node.error('Failed to retrieve App info', e.message);
