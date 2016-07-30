@@ -18,16 +18,20 @@ module.exports = function(RED) {
       var context = this.context();
       var node = this;
 
+      context.set('latestReviewIds',{});
+
       // Send a new message for each new review
       appStoreReviews.on('review', function(review) {
 
-        if (context.get('latestReviewId') === undefined) {
+        var latestReviewIds = context.get('latestReviewIds');
+
+        if (latestReviewIds[review.app] === undefined) {
           // First review : will be used as start value
-          context.set('latestReviewId',review.id);
-        } else if (review.id > context.get('latestReviewId')) {
+          latestReviewIds[review.app] = review.id;
+        } else if (review.id > latestReviewIds[review.app]) {
           // New review
-          context.set('latestReviewId',review.id);
-          var msg = {payload: null};
+          latestReviewIds[review.app] = review.id;
+          var msg = {payload: review.app + ' - ' + review.title + ' - ' + review.rate};
           msg.review = review;
           // Add extra application information into the review
           var appInfo = context.get('appsInfo')[review.app];

@@ -2,84 +2,111 @@ module.exports = function(RED) {
   "use strict";
 
   var storeScraper = require('google-play-scraper');
+  var Q = require('q');
+  var url = require('url');
 
   function GooglePlayNode(config) {
 
       RED.nodes.createNode(this,config);
       this.appid = config.appid;
+      // Parse multiple app ids
+      this.appids = this.appid.split(' ');
       this.language = config.language;
       this.pollinginterval = config.pollinginterval;
       var context = this.context();
       var node = this;
 
+      context.set('latestReviewUrls', {});
+
       var retrieveReviews = function() {
 
-        node.log('Retrieving reviews');
+        node.appids.forEach(function(appid) {
 
-        storeScraper.reviews({
-          appId: node.appid,
-          lang: node.language,
-          page: 0,
-          sort: storeScraper.sort.NEWEST
-        }).then(function(reviews) {
+          node.log('Retrieving reviews for App ' + appid);
 
-          // Store first (latest) review URL
-          var startReviewUrl = null;
-          if (reviews.length > 0) {
-            startReviewUrl = reviews[0].url;
-          }
-          node.log('Start review URL: ' + startReviewUrl);
+          storeScraper.reviews({
+            appId: appid,
+            lang: node.language,
+            page: 0,
+            sort: storeScraper.sort.NEWEST
+          }).then(function(reviews) {
 
-          // Send message for each new review
-          var latestReviewUrl = context.get('latestReviewUrl');
-          node.log('Latest review URL: ' + latestReviewUrl);
-          var latestReviewReached = (latestReviewUrl === undefined);
-          var i = 0;
-          var newReviewsCount = 0;
-          while (!latestReviewReached && i < reviews.length) {
-            var review = reviews[i];
-
-            if (latestReviewUrl === review.url) {
-              node.log('Latest review reached !');
-              latestReviewReached = true;
-            } else {
-              // Send new review
-              var msg = {payload: null};
-              msg.review = review;
-              // Add extra application information into the review
-              var appInfo = context.get('appInfo');
-              msg.review.app = {
-                id: appInfo.appId,
-                title: appInfo.title,
-                icon: appInfo.icon,
-                url: appInfo.url
-              };
-              node.send(msg);
-              newReviewsCount++;
+            // Store first (latest) review URL
+            var startReviewUrl = null;
+            var appid = null;
+            if (reviews.length > 0) {
+              startReviewUrl = reviews[0].url;
+              // Parse matching app id from URL
+              appid = url.parse(reviews[0].url, true).query.id;
             }
-            i++;
-          }
 
-          node.log('Found ' + newReviewsCount + ' new reviews');
+            // Send message for each new review
+            var latestReviewUrls = context.get('latestReviewUrls');
+            var latestReviewReached = (latestReviewUrls[appid] === undefined);
+            var i = 0;
+            var newReviewsCount = 0;
 
-          // Store last review URL processed
-          if (startReviewUrl !== null) {
-            context.set('latestReviewUrl',startReviewUrl);
-            node.log('Last review is [' + reviews[0].title + '] - ' + reviews[0].date);
-          }
+            while (!latestReviewReached && i < reviews.length) {
+              var review = reviews[i];
 
-        }).catch(function(e) {
-          node.error('Failed to retrieve App reviews', e.message);
+              if (latestReviewUrls[appid] === review.url) {
+                latestReviewReached = true;
+              } else {
+                // Send new review
+                var msg = {payload: appid + ' - ' + review.title + ' ' + review.score};
+                msg.review = review;
+                // Add extra application information into the review
+                var appInfo = context.get('appsInfo')[appid];
+                msg.review.app = {
+                  id: appInfo.appId,
+                  title: appInfo.title,
+                  icon: appInfo.icon,
+                  url: appInfo.url
+                };
+                node.send(msg);
+                newReviewsCount++;
+              }
+              i++;
+            }
+
+            node.log('Found ' + newReviewsCount + ' new reviews for App ' + appid);
+
+            // Store last review URL processed
+            if (startReviewUrl !== null) {
+              latestReviewUrls[appid] = startReviewUrl;
+            }
+
+          }).catch(function(e) {
+            node.error('Failed to retrieve App reviews: ' + e.message);
+          });
+
+        });
+
+      };
+
+      var retrieveAppInfo = function() {
+
+        var promises = [];
+        node.appids.forEach(function(appid) {
+          promises.push(storeScraper.app({appId: appid}))
+        });
+
+        return Q.all(promises).
+        then(function(results) {
+          var appsInfo = {};
+          context.set('appsInfo',appsInfo);
+          // Store app info of each app in the node context
+          results.forEach(function(appInfo) {
+            appsInfo[appInfo.appId] = appInfo;
+          });
         });
 
       };
 
       // Reteive app information and start polling
       var interval = null;
-      storeScraper.app({appId: node.appid}).
+      retrieveAppInfo().
       then(function(appInfo) {
-
-        context.set('appInfo',appInfo);
 
         // Interval to poll the reviews
         interval = setInterval(function() {
@@ -87,8 +114,6 @@ module.exports = function(RED) {
         }, (node.pollinginterval) * 60 * 1000);
         // Initial retrieval
         retrieveReviews();
-
-        node.log('Running (' + appInfo.title + ')');
 
       }).catch(function(e) {
         node.error('Failed to retrieve App info', e.message);

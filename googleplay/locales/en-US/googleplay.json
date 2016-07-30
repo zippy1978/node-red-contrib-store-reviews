@@ -10,6 +10,9 @@
       "name": "Name",
       "pollinginterval": "Polling",
       "appid": "App ID"
+    },
+    "placeholder": {
+      "appid": "Separate multiple App IDs with a space"
     }
   }
 }
