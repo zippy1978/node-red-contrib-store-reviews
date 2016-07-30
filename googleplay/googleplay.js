@@ -18,7 +18,7 @@ module.exports = function(RED) {
 
       context.set('latestReviewUrls', {});
 
-      var retrieveReviews = function() {
+      function retrieveReviews() {
 
         node.appids.forEach(function(appid) {
 
@@ -82,9 +82,9 @@ module.exports = function(RED) {
 
         });
 
-      };
+      }
 
-      var retrieveAppInfo = function() {
+      function retrieveAppInfo() {
 
         var promises = [];
         node.appids.forEach(function(appid) {
@@ -101,7 +101,7 @@ module.exports = function(RED) {
           });
         });
 
-      };
+      }
 
       // Reteive app information and start polling
       var interval = null;

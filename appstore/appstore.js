@@ -46,15 +46,15 @@ module.exports = function(RED) {
 
       });
 
-      var retrieveReviews = function() {
+      function retrieveReviews() {
 
         node.appids.forEach(function(appid) {
           node.log('Retrieving reviews for App ' + appid);
           appStoreReviews.getReviews(appid, node.country, 1);
         });
-      };
+      }
 
-      var retrieveAppInfo = function() {
+      function retrieveAppInfo() {
 
         var promises = [];
         node.appids.forEach(function(appid) {
@@ -71,7 +71,7 @@ module.exports = function(RED) {
           });
         });
 
-      };
+      }
 
       // Retrieve app information and setup polling
       var interval = null;
