@@ -34,7 +34,7 @@ module.exports = function(RED) {
           latestReviewIds[review.app] = review.id;
         } else if (review.id > latestReviewIds[review.app]) {
           // New review
-          node.log('New review for + ' + review.app);
+          node.log('New review for ' + review.app);
           latestReviewIds[review.app] = review.id;
           var msg = {payload: review.app + ' - ' + review.title + ' - ' + review.rate};
           msg.review = review;
@@ -46,7 +46,6 @@ module.exports = function(RED) {
             icon: appInfo.icon,
             url: appInfo.url
           };
-          node.log('Sending new review for + ' + review.app);
           node.send(msg);
         }
       }

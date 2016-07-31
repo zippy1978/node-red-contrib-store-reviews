@@ -14,3 +14,7 @@ Once installed nodes are available in the *input* section.
 
  * **appstore**: a node to retrieve application reviews on Apple App Store
  * **googleplay**: a node to retrieve application reviews on Google Play
+
+ ### Release notes
+
+ * **0.2.1**: multiple apps supports for a single input
