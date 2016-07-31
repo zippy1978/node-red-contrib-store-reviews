@@ -88,7 +88,7 @@ module.exports = function(RED) {
 
         var promises = [];
         node.appids.forEach(function(appid) {
-          promises.push(storeScraper.app({appId: appid}))
+          promises.push(storeScraper.app({appId: appid}));
         });
 
         return Q.all(promises).
@@ -129,4 +129,4 @@ module.exports = function(RED) {
   }
 
   RED.nodes.registerType("googleplay",GooglePlayNode);
-}
+};

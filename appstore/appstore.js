@@ -63,7 +63,7 @@ module.exports = function(RED) {
 
         var promises = [];
         node.appids.forEach(function(appid) {
-          promises.push(storeScraper.app({id: appid}))
+          promises.push(storeScraper.app({id: appid}));
         });
 
         return Q.all(promises).
@@ -104,4 +104,4 @@ module.exports = function(RED) {
   }
 
   RED.nodes.registerType("appstore",AppStoreNode);
-}
+};
