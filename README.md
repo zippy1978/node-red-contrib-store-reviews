@@ -17,4 +17,5 @@ Once installed nodes are available in the *input* section.
 
  ### Release notes
 
+ * **0.2.2**: fixed concurrency issue with appstore node
  * **0.2.1**: multiple apps supports for a single input

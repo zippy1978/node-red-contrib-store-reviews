@@ -27,6 +27,9 @@ module.exports = function(RED) {
 
       function handleReview(review) {
 
+        // Deep copy to prevent strange issue (probably due to app-store-reviews lib)
+        review = JSON.parse(JSON.stringify(review));
+
         var latestReviewIds = context.get('latestReviewIds');
 
         if (latestReviewIds[review.app] === undefined) {
