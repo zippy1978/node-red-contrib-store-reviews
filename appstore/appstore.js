@@ -1,109 +1,66 @@
 module.exports = function(RED) {
   "use strict";
 
-  var storeScraper = require('app-store-scraper');
-  var AppStoreReviewsModule = require('app-store-reviews');
-  var Q = require('q');
-  var appStoreReviews = new AppStoreReviewsModule();
+  var poller = require('../lib/poller.js');
+  var Detector = require('../lib/detector.js');
+  var connector = require('./connector.js');
 
 
   function AppStoreNode(config) {
 
       RED.nodes.createNode(this,config);
-      this.appid = config.appid;
+
       // Parse multiple app ids
-      this.appids = this.appid.split(' ');
+      this.appids = config.appid.split(' ');
       this.country = config.country;
       this.pollinginterval = config.pollinginterval;
+
       var context = this.context();
       var node = this;
 
-      context.set('latestReviewIds',{});
-
-      // Send a new message for each new review
-      appStoreReviews.on('review', function(review) {
-        handleReview(review);
+      // Instantiate detector for each application
+      node.appids.forEach(function(a) {
+        node.log('Registering app ' + a);
+        context.set(a, new Detector(a, node.country, connector));
       });
 
-      function handleReview(review) {
+      // Start polling
+      poller.start(function() {
 
-        // Deep copy to prevent strange issue (probably due to app-store-reviews lib)
-        review = JSON.parse(JSON.stringify(review));
+        // Detect new reviews for each application
+        node.appids.forEach(function(a) {
+          var detector = context.get(a);
 
-        var latestReviewIds = context.get('latestReviewIds');
+          node.log('Looking for new reviews for app ' + a);
 
-        if (latestReviewIds[review.app] === undefined) {
-          // First review : will be used as start value
-          latestReviewIds[review.app] = review.id;
-        } else if (review.id > latestReviewIds[review.app]) {
-          // New review
-          node.log('New review for ' + review.app);
-          latestReviewIds[review.app] = review.id;
-          var msg = {payload: review.app + ' - ' + review.title + ' - ' + review.rate};
-          msg.review = review;
-          // Add extra application information into the review
-          var appInfo = context.get('appsInfo')[review.app];
-          msg.review.app = {
-            id: appInfo.id,
-            title: appInfo.title,
-            icon: appInfo.icon,
-            url: appInfo.url
-          };
-          node.send(msg);
-        }
-      }
+          detector.detect()
+          .then(function(newReviews) {
 
-      function retrieveReviews() {
+            node.log(newReviews.length + ' new reviews found for app ' + detector.appId);
 
-        node.appids.forEach(function(appid) {
-          node.log('Retrieving reviews for App ' + appid);
-          appStoreReviews.getReviews(appid, node.country, 1);
-        });
-      }
+            // Send new reviews
+            newReviews.forEach(function(r) {
+              var msg = {payload: r.id + ' - ' + r.title + ' - ' + r.rating};
+              msg.review = r;
+              node.send(msg);
+            });
 
-      function retrieveAppInfo() {
-
-        var promises = [];
-        node.appids.forEach(function(appid) {
-          promises.push(storeScraper.app({id: appid}));
-        });
-
-        return Q.all(promises).
-        then(function(results) {
-          var appsInfo = {};
-          context.set('appsInfo',appsInfo);
-          // Store app info of each app in the node context
-          results.forEach(function(appInfo) {
-            appsInfo[appInfo.id] = appInfo;
+          }).fail(function(err) {
+            node.error('Failed to detect new reviews for ' + a);
           });
         });
 
-      }
-
-      // Retrieve app information and setup polling
-      var interval = null;
-      retrieveAppInfo().
-      then(function(appInfo) {
-
-        // Interval to poll the reviews
-        interval = setInterval(function() {
-          retrieveReviews();
-        }, parseInt(node.pollinginterval) * 60 * 1000);
-        // Initial retrieval
-        retrieveReviews();
-
-      }).catch(function(e) {
-        node.error('Failed to retrieve App info', e.message);
-      });
+      }, parseInt(node.pollinginterval));
 
       // On node destruction...
       node.on('close', function(done) {
         if (interval !== null) {
-          clearInterval(interval);
+         poller.stop();
         }
         done();
       });
   }
 
   RED.nodes.registerType("appstore",AppStoreNode);
+
 };

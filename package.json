@@ -10,7 +10,7 @@
     }
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/.bin/mocha --require should -R spec --ui bdd -t 20000 test/**/*.spec.js"
   },
   "keywords": [
     "application",
@@ -25,9 +25,13 @@
   "repository": "zippy1978/node-red-contrib-store-reviews",
   "license": "ISC",
   "dependencies": {
-    "app-store-reviews": "0.0.4",
     "app-store-scraper": "^0.3.1",
     "google-play-scraper": "^3.0.0",
-    "q": "^1.4.1"
+    "q": "^1.4.1",
+    "request": "^2.74.0"
+  },
+  "devDependencies": {
+    "mocha": "^3.0.0",
+    "should": "^10.0.0"
   }
 }

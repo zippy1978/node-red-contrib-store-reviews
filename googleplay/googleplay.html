@@ -52,19 +52,12 @@
     <p>Sends a new message for each new review found for a given App in a given language.</p>
     <p>Review data is stored in <code>msg.review</code>.</p>
     <p>Content of <code>msg.review</code> is:</p>
-
     <ul>
-      <li><code>msg.review.userId</code>: author user identifier</li>
-      <li><code>msg.review.userName</code>: review author</li>
-      <li><code>msg.review.date</code>: review date</li>
-      <li><code>msg.review.app</code>: application information. Object containing <code>id</code>, <code>title</code>, <code>icon</code> and <code>url</code></li>
-      <li><code>msg.review.score</code>: review rating</li>
-      <li><code>msg.review.url</code>: review URL</li>
-      <li><code>msg.review.version</code>: application version reviewed</li>
+      <li><code>msg.review.id</code>: review identifier</li>
+      <li><code>msg.review.appInfo</code>: application information. Object containing <code>id</code>, <code>title</code>, <code>icon</code> and <code>url</code></li>
+      <li><code>msg.review.rating</code>: review rating</li>
+      <li><code>msg.review.author</code>: review author</li>
       <li><code>msg.review.title</code>: review title</li>
-      <li><code>msg.review.text</code>: review comment</li>
-      <li><code>msg.review.replyDate</code>: review reply date (if any)</li>
-      <li><code>msg.review.replyText</code>: review reply text (if any)</li>
-
+      <li><code>msg.review.comment</code>: review comment</li>
     </ul>
 </script>
