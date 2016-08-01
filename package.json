@@ -1,7 +1,8 @@
 {
   "name": "node-red-contrib-store-reviews",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "A set of input nodes to collect application store reviews",
+  "homepage": "https://github.com/zippy1978/node-red-contrib-store-reviews",
   "node-red": {
     "nodes": {
       "appstore": "appstore/appstore.js",
@@ -21,6 +22,7 @@
     "googleplay"
   ],
   "author": "zippy1978",
+  "repository": "zippy1978/node-red-contrib-store-reviews",
   "license": "ISC",
   "dependencies": {
     "app-store-reviews": "0.0.4",
