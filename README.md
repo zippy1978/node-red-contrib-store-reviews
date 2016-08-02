@@ -1,6 +1,11 @@
 # node-red-contrib-store-reviews
 A set of input node to retrieve user reviews on application stores such as Apple App Store or Google Play.
 
+| Branch   |      Status                                                                                                                                |
+|----------|:------------------------------------------------------------------------------------------------------------------------------------------:|
+| master | [![Build Status](https://travis-ci.org/zippy1978/node-red-contrib-store-reviews.svg?branch=master)](https://travis-ci.org/Backelite/sonar-swift)  |
+| develop| [![Build Status](https://travis-ci.org/zippy1978/node-red-contrib-store-reviews.svg?branch=develop)](https://travis-ci.org/Backelite/sonar-swift) |
+
 ## Install
 
 	cd ~\.node-red
